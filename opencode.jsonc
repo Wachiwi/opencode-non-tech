@@ -1,0 +1,78 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // ---------------------------------------------------------------
+  // Standardprojekt – Setup für nicht-technische Nutzung
+  // Deploy-Hinweise: siehe README.md
+  // ---------------------------------------------------------------
+
+  // Standard-Modell: GLM 5.3 Flash (günstig, schnell, über OpenRouter)
+  "model": "openrouter/~z-ai/glm-flash-latest",
+
+  // Hauptagent für alle normalen Anfragen
+  "default_agent": "planer",
+
+  // OpenRouter – API-Key kommt aus der Umgebungsvariable (NICHT hier eintragen!)
+  "providers": {
+    "openrouter": {
+      "settings": {
+        "apiKey": "{env:OPENROUTER_API_KEY}"
+      }
+    }
+  },
+
+  // Plugins
+  "plugins": [
+    // Persistentes Gedächtnis (lokal, Turso/libSQL, Web-UI auf 127.0.0.1:4747)
+    "opencode-mem@latest"
+  ],
+
+  // MCP-Server
+  "mcp": {
+    "servers": {
+      // Lokaler RAG-Index über Datenblätter/Kataloge (PDF, DOCX, MD, TXT)
+      // HINWEIS: BASE_DIR muss beim Deployment auf den echten Datenblätter-Ordner zeigen!
+      "rag": {
+        "type": "local",
+        "command": ["npx", "-y", "mcp-local-rag"],
+        "environment": {
+          "BASE_DIR": "C:/Users/wachi/Datenblaetter",
+          "DB_PATH": "C:/Users/wachi/Documents/Standardprojekt/.rag-index",
+          "CACHE_DIR": "C:/Users/wachi/Documents/Standardprojekt/.rag-cache"
+        }
+      },
+
+      // Office-Dokumente (xlsx, docx, pdf) als Markdown lesen/patchen.
+      // Vor Aktivierung: Startkommando prüfen (`npx kordoc --help`), dann disabled auf false.
+      "office": {
+        "type": "local",
+        "command": ["npx", "-y", "kordoc", "mcp"],
+        "disabled": true
+      },
+
+      // Browser-Automation für Hersteller-Kataloge (Gira, Beleuchtung etc.)
+      "playwright": {
+        "type": "local",
+        "command": ["npx", "-y", "@playwright/mcp"]
+      }
+    }
+  },
+
+  // Berechtigungen: für nicht-technische Nutzer bewusst großzügig beim Lesen/Schreiben,
+  // Shell-Kommandos werden aber immer nachgefragt.
+  "permissions": [
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "edit", "resource": "*", "effect": "allow" },
+    { "action": "read", "resource": "*", "effect": "allow" },
+    { "action": "glob", "resource": "*", "effect": "allow" },
+    { "action": "grep", "resource": "*", "effect": "allow" },
+    { "action": "skill", "resource": "*", "effect": "allow" },
+    { "action": "webfetch", "resource": "*", "effect": "allow" },
+    { "action": "websearch", "resource": "*", "effect": "allow" },
+    { "action": "subagent", "resource": "*", "effect": "allow" }
+  ],
+
+  // To-do-Listen für mehrstufige Aufgaben (experimentell)
+  "experimental": {
+    "todo": true
+  }
+}

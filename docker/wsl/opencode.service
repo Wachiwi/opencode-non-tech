@@ -1,0 +1,19 @@
+# Systemd-Dienst: startet den OpenCode-Container beim WSL-Boot
+# Installation: sudo cp opencode.service /etc/systemd/system/ && sudo systemctl enable opencode.service
+
+[Unit]
+Description=OpenCode Server (Docker Compose)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Pfad anpassen, wenn das Projekt woanders liegt:
+WorkingDirectory=/home/%u/Standardprojekt/docker
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+User=%i
+
+[Install]
+WantedBy=multi-user.target

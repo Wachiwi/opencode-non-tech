@@ -1,0 +1,35 @@
+services:
+  opencode:
+    build: .
+    container_name: opencode-server
+    ports:
+      - "4096:4096"
+
+    environment:
+      # API-Key NUR über Umgebungsvariable / .env-Datei, nie einchecken!
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      # Passwort für die Verbindung Desktop → Container
+      OPENCODE_PASSWORD: ${OPENCODE_PASSWORD}
+
+    volumes:
+      # Konfiguration (Container-Path-Version von opencode.jsonc, siehe README)
+      - ./opencode-config:/root/.config/opencode
+
+      # NUR diese Verzeichnisse werden gemountet – nichts anderes vom Rechner sichtbar:
+      - C:/Users/wachi/Documents/Standardprojekt/Kunden:/workspace/Kunden
+      - C:/Users/wachi/Datenblaetter:/workspace/Datenblaetter
+
+      # Persistente Daten (RAG-Index, Memory-DB, Session-Datenbank)
+      - opencode-data:/data
+
+    # Server prüfen: solange nicht gesund, neu starten
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -sf -u opencode:$OPENCODE_PASSWORD http://127.0.0.1:4096/api/info > /dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+volumes:
+  opencode-data:
